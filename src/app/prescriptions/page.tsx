@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { prescriptions, patients } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { markPrescriptionPrinted } from "@/lib/actions";
 

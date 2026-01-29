@@ -2,7 +2,7 @@ import { getAllFees, getFeesSummary, getFeesByDateRange } from "@/lib/actions";
 import Link from "next/link";
 import { db } from "@/db";
 import { fees, patients } from "@/db/schema";
-import { desc, asc } from "drizzle-orm";
+import { desc, asc, eq, and, gte, lte } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
