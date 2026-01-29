@@ -1,7 +1,7 @@
 import { getAllAppointments, getAppointmentsByDate } from "@/lib/actions";
 import { db } from "@/db";
 import { appointments, patients } from "@/db/schema";
-import { desc, asc } from "drizzle-orm";
+import { desc, asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { cancelAppointment, completeAppointment } from "@/lib/actions";
 
