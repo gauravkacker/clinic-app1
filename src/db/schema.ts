@@ -1,9 +1,9 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, serial } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Patients table - unique registration numbers
-export const patients = sqliteTable("patients", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const patients = pgTable("patients", {
+  id: serial("id").primaryKey(),
   regdNo: text("regd_no").notNull().unique(), // Unique registration number
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
@@ -17,17 +17,17 @@ export const patients = sqliteTable("patients", {
   pincode: text("pincode"),
   occupation: text("occupation"),
   refBy: text("ref_by"), // Reference by
-  isNewPatient: integer("is_new_patient", { mode: "boolean" }).default(true),
-  registrationDate: text("registration_date").$defaultFn(() => new Date().toISOString()),
+  isNewPatient: integer("is_new_patient").default(1), // 1 = true, 0 = false
+  registrationDate: text("registration_date").default(new Date().toISOString()),
   notes: text("notes"),
   status: text("status").default("active"), // active, inactive
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Appointments table - slots, tokens, booking
-export const appointments = sqliteTable("appointments", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const appointments = pgTable("appointments", {
+  id: serial("id").primaryKey(),
   patientId: integer("patient_id").references(() => patients.id),
   regdNo: text("regd_no").notNull(),
   appointmentDate: text("appointment_date").notNull(),
@@ -40,13 +40,13 @@ export const appointments = sqliteTable("appointments", {
   rescheduledFrom: integer("rescheduled_from"), // Previous appointment ID
   cancelledAt: text("cancelled_at"),
   cancellationReason: text("cancellation_reason"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Fees table - advance fees, payment tracking
-export const fees = sqliteTable("fees", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const fees = pgTable("fees", {
+  id: serial("id").primaryKey(),
   patientId: integer("patient_id").references(() => patients.id),
   appointmentId: integer("appointment_id").references(() => appointments.id),
   feeType: text("fee_type").notNull(), // new_patient, followup, consultation, advance
@@ -57,14 +57,14 @@ export const fees = sqliteTable("fees", {
   dueAmount: integer("due_amount").default(0),
   receiptNo: text("receipt_no").unique(),
   notes: text("notes"),
-  feeDate: text("fee_date").$defaultFn(() => new Date().toISOString().split('T')[0]),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  feeDate: text("fee_date").default(new Date().toISOString().split('T')[0]),
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Cases table - case taking module
-export const cases = sqliteTable("cases", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const cases = pgTable("cases", {
+  id: serial("id").primaryKey(),
   patientId: integer("patient_id").references(() => patients.id),
   appointmentId: integer("appointment_id").references(() => appointments.id),
   caseNo: integer("case_no").notNull(),
@@ -78,14 +78,14 @@ export const cases = sqliteTable("cases", {
   prognosisStatus: text("prognosis_status"), // improving, stable, worsening
   followUpDate: text("follow_up_date"),
   caseNotes: text("case_notes"), // Additional notes
-  isFollowUp: integer("is_follow_up", { mode: "boolean" }).default(false),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  isFollowUp: integer("is_follow_up").default(0), // 1 = true, 0 = false
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Prescriptions table
-export const prescriptions = sqliteTable("prescriptions", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const prescriptions = pgTable("prescriptions", {
+  id: serial("id").primaryKey(),
   patientId: integer("patient_id").references(() => patients.id),
   caseId: integer("case_id").references(() => cases.id),
   appointmentId: integer("appointment_id").references(() => appointments.id),
@@ -97,16 +97,16 @@ export const prescriptions = sqliteTable("prescriptions", {
   instructions: text("instructions"),
   autoText: text("auto_text"), // Auto generated text
   language: text("language").default("english"),
-  isCombination: integer("is_combination", { mode: "boolean" }).default(false),
-  printed: integer("printed", { mode: "boolean" }).default(false),
+  isCombination: integer("is_combination").default(0), // 1 = true, 0 = false
+  printed: integer("printed").default(0), // 1 = true, 0 = false
   printedAt: text("printed_at"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Medicines master table
-export const medicines = sqliteTable("medicines", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const medicines = pgTable("medicines", {
+  id: serial("id").primaryKey(),
   name: text("name").notNull(),
   category: text("category"), // Mother tincture, 6x, 30, 200, 1M, etc.
   potency: text("potency"),
@@ -116,42 +116,42 @@ export const medicines = sqliteTable("medicines", {
   minStock: integer("min_stock").default(10),
   unit: text("unit").default("ml"),
   price: integer("price").default(0),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  isActive: integer("is_active").default(1), // 1 = true, 0 = false
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Follow-ups table
-export const followUps = sqliteTable("follow_ups", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const followUps = pgTable("follow_ups", {
+  id: serial("id").primaryKey(),
   patientId: integer("patient_id").references(() => patients.id),
   caseId: integer("case_id").references(() => cases.id),
   appointmentId: integer("appointment_id").references(() => appointments.id),
   followUpDate: text("follow_up_date").notNull(),
   followUpStatus: text("follow_up_status").default("pending"), // pending, completed, missed
-  isFree: integer("is_free_followup", { mode: "boolean" }).default(false), // Free followup
-  isPaid: integer("is_paid_followup", { mode: "boolean" }).default(false), // Paid followup
+  isFree: integer("is_free_followup").default(0), // 1 = true, 0 = false
+  isPaid: integer("is_paid_followup").default(0), // 1 = true, 0 = false
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Fees settings table
-export const feesSettings = sqliteTable("fees_settings", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const feesSettings = pgTable("fees_settings", {
+  id: serial("id").primaryKey(),
   newPatientFee: integer("new_patient_fee").notNull(),
   followUpFee: integer("follow_up_fee").notNull(),
   consultationFee: integer("consultation_fee").notNull(),
   advancePayment: integer("advance_payment").default(0),
-  effectiveDate: text("effective_date").$defaultFn(() => new Date().toISOString()),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  effectiveDate: text("effective_date").default(new Date().toISOString()),
+  isActive: integer("is_active").default(1), // 1 = true, 0 = false
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Clinic settings table
-export const clinicSettings = sqliteTable("clinic_settings", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const clinicSettings = pgTable("clinic_settings", {
+  id: serial("id").primaryKey(),
   clinicName: text("clinic_name").notNull(),
   doctorName: text("doctor_name").notNull(),
   qualification: text("qualification"),
@@ -161,8 +161,8 @@ export const clinicSettings = sqliteTable("clinic_settings", {
   logo: text("logo"),
   footerText: text("footer_text"),
   language: text("language").default("english"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdAt: text("created_at").default(new Date().toISOString()),
+  updatedAt: text("updated_at").default(new Date().toISOString()),
 });
 
 // Relations
